@@ -24,3 +24,8 @@ export async function createTest(testData: CreateTestData) {
 
   await testRepository.insert(testData);
 }
+
+export async function getByDisciplines() {
+  const tests = await testRepository.findByDiscipline();
+  return tests;
+}
