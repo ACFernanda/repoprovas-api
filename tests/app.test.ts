@@ -1,27 +1,71 @@
 import supertest from "supertest";
+
 import app from "../src/app.js";
+import prisma from "../src/config/db.js";
+import userFactory from "./factories/userFactory.js";
+
+beforeEach(async () => {
+  await prisma.$executeRaw`DELETE FROM users WHERE email = 'teste@teste.com'`;
+});
 
 describe("POST /sign-up", () => {
   it("returns 201 for valid input", async () => {
-    const result = await supertest(app).post("/sign-up").send({
-      email: "teste@teste.com",
-      password: "teste",
-      confirmPassword: "teste",
-    });
-    expect(result.status).toEqual(201);
+    const login = userFactory.createLogin();
+    const response = await supertest(app).post("/sign-up").send(login);
+    expect(response.status).toEqual(201);
   });
 
   it("returns 409 for duplicate input", async () => {
-    const body = {
-      email: "teste2@teste2.com",
-      password: "teste2",
-      confirmPassword: "teste2",
-    };
+    const login = userFactory.createLogin();
+    await userFactory.createUser(login);
 
-    const firstTry = await supertest(app).post("/sign-up").send(body);
-    expect(firstTry.status).toEqual(201);
-
-    const secondTry = await supertest(app).post("/sign-up").send(body);
-    expect(secondTry.status).toEqual(409);
+    const response = await supertest(app).post("/sign-up").send(login);
+    expect(response.status).toEqual(409);
   });
+
+  it("given an invalid input, returns 400", async () => {
+    const login = userFactory.createLogin();
+    delete login.password;
+
+    const response = await supertest(app).post("/sign-up").send(login);
+    expect(response.status).toEqual(400);
+  });
+});
+
+describe("POST /sign-in", () => {
+  it("returns token for valid input", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    const user: any = await userFactory.createUser(login);
+
+    const response = await supertest(app).post("/sign-in").send({
+      email: user.email,
+      password: user.plainPassword,
+    });
+    const token = response.body.token;
+    expect(token).not.toBeNull();
+  });
+
+  it("returns 401 for wrong email or password", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    const user = userFactory.createUser(login);
+
+    const response = await supertest(app)
+      .post("/sign-in")
+      .send({ ...login, password: "outropassword" });
+    expect(response.status).toEqual(401);
+  });
+
+  it("given an invalid input, returns 400", async () => {
+    const login = userFactory.createLogin();
+
+    const response = await supertest(app).post("/sign-in").send(login);
+    expect(response.status).toEqual(400);
+  });
+});
+
+afterAll(async () => {
+  await prisma.$executeRaw`DELETE FROM users WHERE email = 'teste@teste.com'`;
+  await prisma.$disconnect();
 });
