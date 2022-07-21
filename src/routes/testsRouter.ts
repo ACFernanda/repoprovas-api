@@ -4,7 +4,7 @@ import schemaValidator from "../middlewares/schemaValidator.js";
 import {
   createTest,
   getTestsByDisciplines,
-  // getTestsByTeachers,
+  getTestsByTeachers,
 } from "../controllers/testsController.js";
 import { testSchema } from "../schemas/testSchema.js";
 
@@ -14,6 +14,6 @@ testsRouter.use(tokenValidator);
 
 testsRouter.post("/tests", schemaValidator(testSchema), createTest);
 testsRouter.get("/tests/disciplines", getTestsByDisciplines);
-// testsRouter.get("/tests/teachers", getTestsByTeachers);
+testsRouter.get("/tests/teachers", getTestsByTeachers);
 
 export default testsRouter;

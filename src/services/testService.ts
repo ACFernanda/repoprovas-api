@@ -29,3 +29,8 @@ export async function getByDisciplines() {
   const tests = await testRepository.findByDiscipline();
   return tests;
 }
+
+export async function getByTeachers() {
+  const tests = await testRepository.findByTeacher();
+  return tests;
+}
