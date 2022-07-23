@@ -92,6 +92,14 @@ describe("POST /tests", () => {
     expect(test.name).toBe(savedTest.name);
   });
 
+  it("given no token, returns 401", async () => {
+    const test = testFactory.createTestInfo();
+
+    let response = await supertest(app).post("/tests").send(test);
+
+    expect(response.status).toEqual(401);
+  });
+
   it("given invalid schema, returns 400", async () => {
     const login = userFactory.createLogin();
     delete login.confirmPassword;
