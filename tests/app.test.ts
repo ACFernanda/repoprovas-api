@@ -91,6 +91,25 @@ describe("POST /tests", () => {
 
     expect(test.name).toBe(savedTest.name);
   });
+
+  it("given invalid inputs, returns 400", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+    delete test.categoryId;
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toEqual(400);
+  });
 });
 
 afterAll(async () => {
