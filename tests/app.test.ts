@@ -92,7 +92,7 @@ describe("POST /tests", () => {
     expect(test.name).toBe(savedTest.name);
   });
 
-  it("given invalid inputs, returns 400", async () => {
+  it("given invalid schema, returns 400", async () => {
     const login = userFactory.createLogin();
     delete login.confirmPassword;
     await userFactory.createUser(login);
@@ -109,6 +109,46 @@ describe("POST /tests", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toEqual(400);
+  });
+
+  it("given invalid category, returns 404", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+    const INVALID_CATEGORY = 100;
+    test.categoryId = INVALID_CATEGORY;
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toEqual(404);
+  });
+
+  it("given invalid teacher-discipline relation id, returns 404", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+    const INVALID_TEACHER_DISCIPLINE_ID = 100;
+    test.teacherDisciplineId = INVALID_TEACHER_DISCIPLINE_ID;
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toEqual(404);
   });
 });
 
