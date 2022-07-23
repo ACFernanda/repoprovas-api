@@ -44,7 +44,7 @@ describe("POST /sign-in", () => {
       email: user.email,
       password: user.plainPassword,
     });
-    const token = response.body.token;
+    const token = response.text;
     expect(token).not.toBeNull();
   });
 
@@ -157,6 +157,56 @@ describe("POST /tests", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toEqual(404);
+  });
+});
+
+describe("GET /tests/disciplines", () => {
+  it("given valid inputs, get tests by discipline", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    response = await supertest(app)
+      .get("/tests/disciplines")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.body).not.toBeNull();
+    expect(response.status).toEqual(200);
+  });
+});
+
+describe("GET /tests/teachers", () => {
+  it("given valid inputs, get tests by teachers", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    response = await supertest(app)
+      .get("/tests/teachers")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.body).not.toBeNull();
+    expect(response.status).toEqual(200);
   });
 });
 
