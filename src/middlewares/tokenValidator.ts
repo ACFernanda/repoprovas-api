@@ -17,13 +17,14 @@ export async function tokenValidator(
     };
   }
 
-  const user = jwt.verify(token, secretKey);
-  if (!user) {
-    throw {
-      type: "not_found",
-      message: "User not found",
-    };
-  }
+  const user = jwt.verify(token, secretKey, (err) => {
+    if (err) {
+      throw {
+        type: "not_found",
+        message: "User not found",
+      };
+    }
+  });
 
   res.locals.user = user;
   next();

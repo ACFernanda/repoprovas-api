@@ -183,6 +183,26 @@ describe("GET /tests/disciplines", () => {
     expect(response.body).not.toBeNull();
     expect(response.status).toEqual(200);
   });
+
+  it("given no token, returns 401", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    response = await supertest(app).get("/tests/disciplines");
+
+    expect(response.status).toEqual(401);
+  });
 });
 
 describe("GET /tests/teachers", () => {
@@ -207,6 +227,26 @@ describe("GET /tests/teachers", () => {
 
     expect(response.body).not.toBeNull();
     expect(response.status).toEqual(200);
+  });
+
+  it("given no token, returns 401", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    response = await supertest(app).get("/tests/teachers");
+
+    expect(response.status).toEqual(401);
   });
 });
 
