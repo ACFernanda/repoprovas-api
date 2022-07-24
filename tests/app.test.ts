@@ -100,6 +100,18 @@ describe("POST /tests", () => {
     expect(response.status).toEqual(401);
   });
 
+  it("given invalid token, returns 404", async () => {
+    const token = "invalidtoken";
+    const test = testFactory.createTestInfo();
+
+    let response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toEqual(404);
+  });
+
   it("given invalid schema, returns 400", async () => {
     const login = userFactory.createLogin();
     delete login.confirmPassword;
@@ -203,6 +215,29 @@ describe("GET /tests/disciplines", () => {
 
     expect(response.status).toEqual(401);
   });
+
+  it("given invalid token, returns 404", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    const INVALID_TOKEN = "invalidtoken";
+    response = await supertest(app)
+      .get("/tests/disciplines")
+      .set("Authorization", `Bearer ${INVALID_TOKEN}`);
+
+    expect(response.status).toEqual(404);
+  });
 });
 
 describe("GET /tests/teachers", () => {
@@ -247,6 +282,29 @@ describe("GET /tests/teachers", () => {
     response = await supertest(app).get("/tests/teachers");
 
     expect(response.status).toEqual(401);
+  });
+
+  it("given invalid token, returns 404", async () => {
+    const login = userFactory.createLogin();
+    delete login.confirmPassword;
+    await userFactory.createUser(login);
+
+    let response = await supertest(app).post("/sign-in").send(login);
+    const token = response.text;
+
+    const test = testFactory.createTestInfo();
+
+    response = await supertest(app)
+      .post("/tests")
+      .send(test)
+      .set("Authorization", `Bearer ${token}`);
+
+    const INVALID_TOKEN = "invalidtoken";
+    response = await supertest(app)
+      .get("/tests/teachers")
+      .set("Authorization", `Bearer ${INVALID_TOKEN}`);
+
+    expect(response.status).toEqual(404);
   });
 });
 
